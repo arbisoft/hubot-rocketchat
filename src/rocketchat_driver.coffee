@@ -112,6 +112,32 @@ class RocketChatDriver
 		@logger.info "Subscribing to Room: #{data.roomid}"
 		return msgsub.ready
 
+	prepActiveUserSubscription: =>
+		@logger.info "Preparing Active Users(online,away) Subscription"
+		actsub = @asteroid.subscribe 'activeUsers'
+		return actsub.ready
+
+	setupReactiveOnlineUser: (robotname)=>
+		logger = @logger
+		@logger.info "Setting up reactive users list..."
+		@users = @asteroid.getCollection 'users'
+		rQ = @users.reactiveQuery {}
+		rQ.on "delete", (id) =>
+			logger.info 'user removed '+ ' ' + JSON.stringify(id)
+		rQ.on "change", (id) =>
+			user = @users.reactiveQuery {"_id": id }
+			if user.result && user.result.length > 0
+				result = user.result[0]
+				if (result['status'] == 'online')
+					botmessage= "Hi: " + result.username
+				else if result['status'] == 'away'
+					botmessage= "Bye: " + result.username
+				r = @getDirectMessageRoomId result.username
+				r.then (room) =>
+					logger.info(botmessage)
+		#@sendMessage message, room.rid
+
+
 	setupReactiveMessageList: (receiveMessageCallback) =>
 		@logger.info "Setting up reactive message list..."
 		@messages = @asteroid.getCollection _messageCollection

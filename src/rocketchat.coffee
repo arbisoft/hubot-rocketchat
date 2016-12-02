@@ -169,6 +169,16 @@ class RocketChatBotAdapter extends Adapter
 			.then(() =>
 				@emit 'connected'
 			)
+			# Subscribe to users that comes online
+			.then((res) =>
+				@robot.logger.info "Additionally subscribing for active users."
+				@chatdriver.prepActiveUserSubscription()
+			)
+			.then((res) =>
+				@robot.logger.info "Subscription for active users done"
+				console.log("Subscription ID: " + res)
+				@chatdriver.setupReactiveOnlineUser(@robot.name)
+			)
 			# Final exit, all throws skip to here
 			.catch((err) =>
 				@robot.logger.error JSON.stringify(err)
