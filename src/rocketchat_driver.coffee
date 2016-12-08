@@ -118,8 +118,7 @@ class RocketChatDriver
 		@users = @asteroid.getCollection 'users'
 		@asteroid.ddp.on "removed", ({collection, id, fields}) =>
 			if(collection == "users")
-				@logger.info "Bye " + id
-			@logger.info "Element removed from collection " + collection
+				@logger.info "Bye: " + id
 		return actsub.ready
 
 	prepUserDataSubscription: =>
