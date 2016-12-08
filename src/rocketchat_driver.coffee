@@ -136,10 +136,8 @@ class RocketChatDriver
 			if user.result && user.result.length > 0
 				result = user.result[0]
 				if (result['status'] == 'online')
-					botmessage= "Hi: " + result.username + " " +id
-				r = @getDirectMessageRoomId result.username
-				r.then (room) =>
-					logger.info(botmessage)
+					logger.info "Hi: " + result.username + " " +id
+
 
 #@sendMessage message, room.rid
 
