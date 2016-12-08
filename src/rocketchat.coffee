@@ -179,6 +179,10 @@ class RocketChatBotAdapter extends Adapter
 				console.log("Subscription ID: " + res)
 				@chatdriver.setupReactiveOnlineUser(@robot.name)
 			)
+			.then((res) =>
+				@robot.logger.info "Additionally subscribing for user data."
+				@chatdriver.prepUserDataSubscription(@robot.name)
+			)
 			# Final exit, all throws skip to here
 			.catch((err) =>
 				@robot.logger.error JSON.stringify(err)

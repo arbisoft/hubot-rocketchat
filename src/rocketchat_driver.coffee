@@ -80,9 +80,9 @@ class RocketChatDriver
 	sendMessageByRoomId: (content, roomid) =>
 		message = @prepareMessage content, roomid
 		@asteroid.call('sendMessage', message)
-		.then (result)->
+			.then (result)->
 			@logger.debug('[sendMessage] Success:', result)
-		.catch (error) ->
+			.catch (error) ->
 			@logger.error('[sendMessage] Error:', error)
 
 	customMessage: (message) =>
@@ -103,10 +103,10 @@ class RocketChatDriver
 			return @asteroid.loginWithPassword username, password
 
 	prepMeteorSubscriptions: (data) =>
-		# use data to cater for param differences - until we learn more
-		#  data.uid
-		#  data.roomid
-		# return promise
+# use data to cater for param differences - until we learn more
+#  data.uid
+#  data.roomid
+# return promise
 		@logger.info "Preparing Meteor Subscriptions.."
 		msgsub = @asteroid.subscribe _msgsubtopic, data.roomid, true
 		@logger.info "Subscribing to Room: #{data.roomid}"
@@ -115,27 +115,33 @@ class RocketChatDriver
 	prepActiveUserSubscription: =>
 		@logger.info "Preparing Active Users(online,away) Subscription"
 		actsub = @asteroid.subscribe 'activeUsers'
+		@users = @asteroid.getCollection 'users'
+		@asteroid.ddp.on "removed", ({collection, id, fields}) =>
+			if(collection == "users")
+				@logger.info "Bye " + id
+			@logger.info "Element removed from collection " + collection
 		return actsub.ready
+
+	prepUserDataSubscription: =>
+		usub = @asteroid.subscribe 'fullUserData'
+		return usub.ready
 
 	setupReactiveOnlineUser: (robotname)=>
 		logger = @logger
 		@logger.info "Setting up reactive users list..."
 		@users = @asteroid.getCollection 'users'
 		rQ = @users.reactiveQuery {}
-		rQ.on "delete", (id) =>
-			logger.info 'user removed '+ ' ' + JSON.stringify(id)
 		rQ.on "change", (id) =>
 			user = @users.reactiveQuery {"_id": id }
 			if user.result && user.result.length > 0
 				result = user.result[0]
 				if (result['status'] == 'online')
-					botmessage= "Hi: " + result.username
-				else if result['status'] == 'away'
-					botmessage= "Bye: " + result.username
+					botmessage= "Hi: " + result.username + " " +id
 				r = @getDirectMessageRoomId result.username
 				r.then (room) =>
 					logger.info(botmessage)
-		#@sendMessage message, room.rid
+
+#@sendMessage message, room.rid
 
 
 	setupReactiveMessageList: (receiveMessageCallback) =>
@@ -144,12 +150,12 @@ class RocketChatDriver
 
 		rQ = @messages.reactiveQuery {}
 		rQ.on "change", (id) =>
-			# awkward syntax due to asteroid limitations
-			# - it ain't no minimongo cursor
-			# @logger.info "Change received on ID " + id
+# 	awkward syntax due to asteroid limitations
+# 	- it ain't no minimongo cursor
+# 	@logger.info "Change received on ID " + id
 			changedMsgQuery = @messages.reactiveQuery {"_id": id}
 			if changedMsgQuery.result && changedMsgQuery.result.length > 0
-				# console.log('result:', JSON.stringify(changedMsgQuery.result, null, 2))
+# 		console.log('result:', JSON.stringify(changedMsgQuery.result, null, 2))
 				changedMsg = changedMsgQuery.result[0]
 				# console.log('changed:', JSON.stringify(changedMsg, null, 2));
 				if changedMsg.args?
