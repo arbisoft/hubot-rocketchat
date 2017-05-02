@@ -17,7 +17,8 @@ ENV EXTERNAL_SCRIPTS=hubot-diagnostics,hubot-help,hubot-google-images,hubot-goog
 RUN yo hubot --owner="$BOT_OWNER" --name="$BOT_NAME" --description="$BOT_DESC" --defaults && \
 	sed -i /heroku/d ./external-scripts.json && \
 	sed -i /redis-brain/d ./external-scripts.json && \
-	npm install hubot-scripts
+	npm install hubot-scripts && \
+	npm install cron
 
 ADD . /home/hubot/node_modules/hubot-rocketchat
 
